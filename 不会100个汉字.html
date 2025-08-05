@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生字消消乐 - 字词收集版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .game-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 50%, #a1c4fd 100%);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.8rem;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        h1::after {
+            content: "";
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4, #a1c4fd);
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .mode-btn {
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            min-width: 160px;
+        }
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .mode-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        #mode1 {
+            background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+            color: #2c3e50;
+        }
+        #mode2 {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            color: #2c3e50;
+        }
+        #mode3 {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: #2c3e50;
+        }
+        #mode4 {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+            color: #2c3e50;
+        }
+        .group-selector {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+        .group-btn {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #2c3e50;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        .group-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        .group-btn.active {
+            background: linear-gradient(135deg, #5ee7df 0%, #b490ca 100%);
+            color: white;
+            transform: scale(1.08);
+        }
+        .game-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .game-board {
+            flex: 1;
+            min-width: 300px;
+        }
+        .collection-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .panel-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            position: relative;
+        }
+        .panel-title::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4, #a1c4fd);
+            border-radius: 2px;
+        }
+        .score-area {
+            text-align: center;
+            font-size: 1.8rem;
+            margin: 20px 0;
+            color: #e74c3c;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+        .feedback {
+            font-size: 1.4rem;
+            min-height: 40px;
+            margin: 15px 0;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .correct-feedback {
+            color: #27ae60;
+            background: rgba(46, 204, 113, 0.2);
+        }
+        .wrong-feedback {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        .question-area {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 120px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+        .question-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            min-width: 80px;
+            text-align: center;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .question-item:hover {
+            transform: translateY(-3px);
+        }
+        .options-area {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 18px;
+            margin: 20px 0;
+        }
+        .option {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border-radius: 12px;
+            padding: 20px 10px;
+            font-size: 2.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+        .option.correct {
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            color: white;
+        }
+        .option.wrong {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+            opacity: 0.8;
+        }
+        .option.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        .controls {
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .control-btn:hover {
+            background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+            transform: scale(1.05);
+        }
+        .collection-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .collection-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .collection-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .collection-tab.active {
+            background: linear-gradient(135deg, #5ee7df 0%, #b490ca 100%);
+            color: white;
+        }
+        .collection-list {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .collection-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 5px;
+            font-size: 1.8rem;
+            text-align: center;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-weight: bold;
+        }
+        .collection-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        .collection-item.mastered {
+            background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+            color: white;
+        }
+        .collection-item.mastered::after {
+            content: "✓";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #27ae60;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .collection-info {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1rem;
+            color: #7f8c8d;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            background: rgba(236, 240, 241, 0.7);
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            color: #3498db;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        @media (max-width: 768px) {
+            .game-content {
+                flex-direction: column;
+            }
+            .options-area {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .mode-btn {
+                padding: 10px 15px;
+                font-size: 1rem;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>生字消消乐</h1>
+        
+        <div class="mode-selector">
+            <button id="mode1" class="mode-btn active">看拼音找字</button>
+            <button id="mode2" class="mode-btn">看字找拼音</button>
+            <button id="mode3" class="mode-btn">错题练习</button>
+            <button id="mode4" class="mode-btn">字词收集</button>
+        </div>
+        
+        <div class="group-selector" id="groupSelector">
+            <!-- 行选择按钮将在这里动态生成 -->
+        </div>
+        
+        <div class="game-content">
+            <div class="game-board">
+                <div class="score-area">
+                    得分: <span id="score">0</span>
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="question-area" id="questionArea"></div>
+                
+                <div class="options-area" id="optionsArea"></div>
+                
+                <div class="controls">
+                    <button class="control-btn" id="nextBtn">下一题</button>
+                    <button class="control-btn" id="resetBtn">重置游戏</button>
+                </div>
+            </div>
+            
+            <div class="collection-panel">
+                <div class="panel-title">字词收集中心</div>
+                <div class="collection-container">
+                    <div class="collection-tabs">
+                        <div class="collection-tab active" data-tab="all">全部字词</div>
+                        <div class="collection-tab" data-tab="wrong">错题本</div>
+                        <div class="collection-tab" data-tab="mastered">已掌握</div>
+                    </div>
+                    
+                    <div class="collection-list" id="collectionList">
+                        <!-- 字词收集内容将在这里动态生成 -->
+                    </div>
+                    
+                    <div class="collection-info">
+                        点击字词可标记为"已掌握"，已掌握的字词会显示为蓝色
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalCount">0</div>
+                            <div class="stat-label">总字词</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="masteredCount">0</div>
+                            <div class="stat-label">已掌握</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="wrongCount">0</div>
+                            <div class="stat-label">错题数</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 汉字和拼音数据 - 按行分组
+        const characterGroups = [
+            // 第一行
+            [
+                { char: "一", pinyin: "yī" }, { char: "二", pinyin: "èr" }, { char: "三", pinyin: "sān" },
+                { char: "四", pinyin: "sì" }, { char: "五", pinyin: "wǔ" }, { char: "六", pinyin: "liù" },
+                { char: "七", pinyin: "qī" }, { char: "八", pinyin: "bā" }, { char: "九", pinyin: "jiǔ" },
+                { char: "十", pinyin: "shí" }
+            ],
+            // 第二行
+            [
+                { char: "上", pinyin: "shàng" }, { char: "口", pinyin: "kǒu" }, { char: "目", pinyin: "mù" },
+                { char: "手", pinyin: "shǒu" }, { char: "日", pinyin: "rì" }, { char: "田", pinyin: "tián" },
+                { char: "禾", pinyin: "hé" }, { char: "火", pinyin: "huǒ" }, { char: "虫", pinyin: "chóng" },
+                { char: "云", pinyin: "yún" }
+            ],
+            // 第三行
+            [
+                { char: "山", pinyin: "shān" }, { char: "了", pinyin: "le" }, { char: "子", pinyin: "zǐ" },
+                { char: "人", pinyin: "rén" }, { char: "大", pinyin: "dà" }, { char: "月", pinyin: "yuè" },
+                { char: "儿", pinyin: "ér" }, { char: "头", pinyin: "tóu" }, { char: "里", pinyin: "lǐ" },
+                { char: "可", pinyin: "kě" }
+            ],
+            // 第四行
+            [
+                { char: "东", pinyin: "dōng" }, { char: "西", pinyin: "xī" }, { char: "天", pinyin: "tiān" },
+                { char: "是", pinyin: "shì" }, { char: "女", pinyin: "nǚ" }, { char: "开", pinyin: "kāi" },
+                { char: "水", pinyin: "shuǐ" }, { char: "去", pinyin: "qù" }, { char: "来", pinyin: "lái" },
+                { char: "不", pinyin: "bù" }
+            ],
+            // 第五行
+            [
+                { char: "小", pinyin: "xiǎo" }, { char: "少", pinyin: "shǎo" }, { char: "牛", pinyin: "niú" },
+                { char: "果", pinyin: "guǒ" }, { char: "鸟", pinyin: "niǎo" }, { char: "早", pinyin: "zǎo" },
+                { char: "书", pinyin: "shū" }, { char: "刀", pinyin: "dāo" }, { char: "尺", pinyin: "chǐ" },
+                { char: "本", pinyin: "běn" }
+            ],
+            // 第六行
+            [
+                { char: "木", pinyin: "mù" }, { char: "林", pinyin: "lín" }, { char: "土", pinyin: "tǔ" },
+                { char: "力", pinyin: "lì" }, { char: "心", pinyin: "xīn" }, { char: "中", pinyin: "zhōng" },
+                { char: "立", pinyin: "lì" }, { char: "正", pinyin: "zhèng" }, { char: "在", pinyin: "zài" },
+                { char: "后", pinyin: "hòu" }
+            ],
+            // 第七行
+            [
+                { char: "我", pinyin: "wǒ" }, { char: "好", pinyin: "hǎo" }, { char: "长", pinyin: "cháng" },
+                { char: "比", pinyin: "bǐ" }, { char: "巴", pinyin: "bā" }, { char: "把", pinyin: "bǎ" },
+                { char: "下", pinyin: "xià" }, { char: "个", pinyin: "gè" }, { char: "雨", pinyin: "yǔ" },
+                { char: "们", pinyin: "men" }
+            ],
+            // 第八行
+            [
+                { char: "问", pinyin: "wèn" }, { char: "有", pinyin: "yǒu" }, { char: "半", pinyin: "bàn" },
+                { char: "从", pinyin: "cóng" }, { char: "你", pinyin: "nǐ" }, { char: "才", pinyin: "cái" },
+                { char: "明", pinyin: "míng" }, { char: "同", pinyin: "tóng" }, { char: "学", pinyin: "xué" },
+                { char: "自", pinyin: "zì" }
+            ],
+            // 第九行
+            [
+                { char: "己", pinyin: "jǐ" }, { char: "衣", pinyin: "yī" }, { char: "白", pinyin: "bái" },
+                { char: "的", pinyin: "de" }, { char: "又", pinyin: "yòu" }, { char: "和", pinyin: "hé" },
+                { char: "竹", pinyin: "zhú" }, { char: "牙", pinyin: "yá" }, { char: "马", pinyin: "mǎ" },
+                { char: "用", pinyin: "yòng" }
+            ],
+            // 第十行
+            [
+                { char: "几", pinyin: "jǐ" }, { char: "只", pinyin: "zhī" }, { char: "石", pinyin: "shí" },
+                { char: "多", pinyin: "duō" }, { char: "出", pinyin: "chū" }, { char: "见", pinyin: "jiàn" },
+                { char: "对", pinyin: "duì" }, { char: "妈", pinyin: "mā" }, { char: "全", pinyin: "quán" },
+                { char: "回", pinyin: "huí" }
+            ],
+            // 第十一行
+            [
+                { char: "工", pinyin: "gōng" }, { char: "厂", pinyin: "chǎng" }
+            ]
+        ];
+
+        // 扁平化所有汉字
+        const allCharacters = characterGroups.flat();
+
+        // 游戏状态
+        let currentMode = 1; // 1: 看拼音找字, 2: 看字找拼音, 3: 错题练习, 4: 字词收集
+        let currentGroupIndex = 0; // 当前选中的行索引
+        let score = 0;
+        let currentQuestion = [];
+        let currentOptions = [];
+        let selectedOptions = [];
+        let correctAnswers = [];
+        let wrongWords = []; // 存储错题
+        let masteredWords = []; // 存储已掌握的字词
+        let isPracticingWrongWords = false; // 是否正在练习错题
+
+        // DOM元素
+        const mode1Btn = document.getElementById('mode1');
+        const mode2Btn = document.getElementById('mode2');
+        const mode3Btn = document.getElementById('mode3');
+        const mode4Btn = document.getElementById('mode4');
+        const groupSelector = document.getElementById('groupSelector');
+        const scoreDisplay = document.getElementById('score');
+        const feedbackDisplay = document.getElementById('feedback');
+        const questionArea = document.getElementById('questionArea');
+        const optionsArea = document.getElementById('optionsArea');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const collectionList = document.getElementById('collectionList');
+        const totalCount = document.getElementById('totalCount');
+        const masteredCount = document.getElementById('masteredCount');
+        const wrongCount = document.getElementById('wrongCount');
+
+        // 初始化游戏
+        function initGame() {
+            score = 0;
+            scoreDisplay.textContent = score;
+            wrongWords = [];
+            masteredWords = [];
+            updateCollectionList('all');
+            updateStats();
+            createGroupButtons();
+            generateQuestion();
+        }
+
+        // 创建行选择按钮
+        function createGroupButtons() {
+            groupSelector.innerHTML = '';
+            characterGroups.forEach((group, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'group-btn';
+                if (index === 0) btn.classList.add('active');
+                btn.textContent = `第${index + 1}行`;
+                btn.dataset.index = index;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentGroupIndex = index;
+                    generateQuestion();
+                });
+                groupSelector.appendChild(btn);
+            });
+        }
+
+        // 生成题目
+        function generateQuestion() {
+            // 重置状态
+            selectedOptions = [];
+            correctAnswers = [];
+            feedbackDisplay.textContent = '';
+            feedbackDisplay.className = 'feedback';
+            questionArea.innerHTML = '';
+            optionsArea.innerHTML = '';
+            
+            // 如果是字词收集模式，不生成题目
+            if (currentMode === 4) {
+                questionArea.innerHTML = '<div class="question-item">字词收集模式</div>';
+                optionsArea.innerHTML = '<div class="option" style="grid-column: span 5;">请查看右侧收集中心</div>';
+                return;
+            }
+            
+            // 如果是错题练习模式且有错题
+            if (currentMode === 3 && wrongWords.length > 0) {
+                isPracticingWrongWords = true;
+                // 从错题中随机选择最多5个
+                const shuffledWrong = [...wrongWords].sort(() => 0.5 - Math.random());
+                currentQuestion = shuffledWrong.slice(0, Math.min(5, wrongWords.length));
+                
+                // 从所有汉字中随机选择干扰项
+                const remainingChars = allCharacters.filter(char => 
+                    !wrongWords.some(w => w.char === char.char)
+                ).sort(() => 0.5 - Math.random());
+                
+                // 确保干扰项数量足够
+                const distractors = remainingChars.slice(0, 10 - currentQuestion.length);
+                currentOptions = [...currentQuestion, ...distractors].sort(() => 0.5 - Math.random());
+            } 
+            // 正常模式
+            else {
+                isPracticingWrongWords = false;
+                // 获取当前选中的行
+                const currentGroup = characterGroups[currentGroupIndex];
+                
+                // 从该行中随机选择5个不同的汉字
+                const shuffled = [...currentGroup].sort(() => 0.5 - Math.random());
+                currentQuestion = shuffled.slice(0, Math.min(5, shuffled.length));
+                
+                // 从其他行中随机选择干扰项
+                const otherGroups = characterGroups.filter((group, index) => index !== currentGroupIndex).flat();
+                const shuffledOthers = [...otherGroups].sort(() => 0.5 - Math.random());
+                const distractors = shuffledOthers.slice(0, 10 - currentQuestion.length);
+                currentOptions = [...currentQuestion, ...distractors].sort(() => 0.5 - Math.random());
+            }
+            
+            // 根据模式显示题目和选项
+            if (currentMode === 1 || (currentMode === 3 && isPracticingWrongWords)) {
+                // 模式1：看拼音找字
+                currentQuestion.forEach(item => {
+                    const questionItem = document.createElement('div');
+                    questionItem.className = 'question-item';
+                    questionItem.textContent = item.pinyin;
+                    questionArea.appendChild(questionItem);
+                    correctAnswers.push(item.char);
+                });
+                
+                currentOptions.forEach(item => {
+                    const option = document.createElement('div');
+                    option.className = 'option';
+                    option.textContent = item.char;
+                    option.dataset.char = item.char;
+                    option.addEventListener('click', () => selectOption(option));
+                    optionsArea.appendChild(option);
+                });
+            } else if (currentMode === 2 || currentMode === 3) {
+                // 模式2：看字找拼音
+                currentQuestion.forEach(item => {
+                    const questionItem = document.createElement('div');
+                    questionItem.className = 'question-item';
+                    questionItem.textContent = item.char;
+                    questionArea.appendChild(questionItem);
+                    correctAnswers.push(item.pinyin);
+                });
+                
+                currentOptions.forEach(item => {
+                    const option = document.createElement('div');
+                    option.className = 'option';
+                    option.textContent = item.pinyin;
+                    option.dataset.pinyin = item.pinyin;
+                    option.addEventListener('click', () => selectOption(option));
+                    optionsArea.appendChild(option);
+                });
+            }
+        }
+
+        // 选择选项
+        function selectOption(option) {
+            // 如果已经选择了5个选项，则不能再选
+            if (selectedOptions.length >= 5 && !option.classList.contains('selected')) {
+                return;
+            }
+            
+            // 切换选择状态
+            if (option.classList.contains('selected')) {
+                option.classList.remove('selected');
+                selectedOptions = selectedOptions.filter(item => item !== option);
+            } else {
+                option.classList.add('selected');
+                selectedOptions.push(option);
+            }
+            
+            // 如果选择了5个选项，检查答案
+            if (selectedOptions.length === 5) {
+                checkAnswers();
+            }
+        }
+
+        // 检查答案
+        function checkAnswers() {
+            let correctCount = 0;
+            let selectedValues = [];
+            let wrongItems = [];
+            
+            // 获取选中的值
+            selectedOptions.forEach(option => {
+                if (currentMode === 1 || currentMode === 3) {
+                    selectedValues.push(option.dataset.char);
+                } else {
+                    selectedValues.push(option.dataset.pinyin);
+                }
+            });
+            
+            // 检查每个正确答案是否被选中
+            correctAnswers.forEach(answer => {
+                if (selectedValues.includes(answer)) {
+                    correctCount++;
+                } else {
+                    // 记录未选中的正确答案
+                    const wrongItem = currentQuestion.find(item => 
+                        (currentMode === 1 || currentMode === 3) ? item.char === answer : item.pinyin === answer
+                    );
+                    if (wrongItem && !wrongWords.some(w => w.char === wrongItem.char) && 
+                        !masteredWords.some(m => m.char === wrongItem.char)) {
+                        wrongItems.push(wrongItem);
+                    }
+                }
+            });
+            
+            // 检查选中的错误答案
+            selectedValues.forEach(value => {
+                if (!correctAnswers.includes(value)) {
+                    const wrongItem = currentOptions.find(item => 
+                        (currentMode === 1 || currentMode === 3) ? item.char === value : item.pinyin === value
+                    );
+                    if (wrongItem && !wrongWords.some(w => w.char === wrongItem.char) && 
+                        !masteredWords.some(m => m.char === wrongItem.char)) {
+                        wrongItems.push(wrongItem);
+                    }
+                }
+            });
+            
+            // 添加到错题本
+            wrongItems.forEach(item => {
+                if (!wrongWords.some(w => w.char === item.char)) {
+                    wrongWords.push(item);
+                }
+            });
+            
+            // 更新统计
+            updateStats();
+            
+            // 更新分数
+            score += correctCount * 2;
+            scoreDisplay.textContent = score;
+            
+            // 显示反馈
+            if (correctCount === 5) {
+                feedbackDisplay.textContent = '太棒了！全部正确！';
+                feedbackDisplay.className = 'feedback correct-feedback';
+            } else {
+                feedbackDisplay.textContent = `答对了 ${correctCount} 个，继续加油！`;
+                feedbackDisplay.className = 'feedback wrong-feedback';
+            }
+            
+            // 标记正确和错误的选项
+            selectedOptions.forEach(option => {
+                let value;
+                if (currentMode === 1 || currentMode === 3) {
+                    value = option.dataset.char;
+                } else {
+                    value = option.dataset.pinyin;
+                }
+                
+                if (correctAnswers.includes(value)) {
+                    option.classList.add('correct');
+                } else {
+                    option.classList.add('wrong');
+                }
+            });
+        }
+
+        // 更新收集列表
+        function updateCollectionList(tab) {
+            collectionList.innerHTML = '';
+            
+            // 获取当前标签页内容
+            let items = [];
+            if (tab === 'all') {
+                items = [...allCharacters];
+            } else if (tab === 'wrong') {
+                items = [...wrongWords];
+            } else if (tab === 'mastered') {
+                items = [...masteredWords];
+            }
+            
+            // 如果没有内容
+            if (items.length === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.textContent = tab === 'all' ? '暂无字词' : 
+                                    tab === 'wrong' ? '暂无错题' : '暂无已掌握字词';
+                emptyMsg.style.gridColumn = '1 / -1';
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.style.padding = '20px';
+                emptyMsg.style.color = '#7f8c8d';
+                collectionList.appendChild(emptyMsg);
+                return;
+            }
+            
+            // 添加字词项
+            items.forEach(item => {
+                const collectionItem = document.createElement('div');
+                collectionItem.className = 'collection-item';
+                collectionItem.textContent = item.char;
+                collectionItem.dataset.char = item.char;
+                
+                // 如果已掌握，添加类
+                if (masteredWords.some(m => m.char === item.char)) {
+                    collectionItem.classList.add('mastered');
+                }
+                
+                // 添加点击事件
+                collectionItem.addEventListener('click', () => {
+                    // 如果未掌握，则标记为已掌握
+                    if (!masteredWords.some(m => m.char === item.char)) {
+                        masteredWords.push(item);
+                        collectionItem.classList.add('mastered');
+                        
+                        // 如果该字词在错题本中，移除
+                        const wrongIndex = wrongWords.findIndex(w => w.char === item.char);
+                        if (wrongIndex !== -1) {
+                            wrongWords.splice(wrongIndex, 1);
+                        }
+                    } else {
+                        // 如果已掌握，则取消掌握
+                        const masteredIndex = masteredWords.findIndex(m => m.char === item.char);
+                        if (masteredIndex !== -1) {
+                            masteredWords.splice(masteredIndex, 1);
+                        }
+                        collectionItem.classList.remove('mastered');
+                    }
+                    
+                    updateStats();
+                });
+                
+                collectionList.appendChild(collectionItem);
+            });
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            totalCount.textContent = allCharacters.length;
+            masteredCount.textContent = masteredWords.length;
+            wrongCount.textContent = wrongWords.length;
+        }
+
+        // 切换模式
+        mode1Btn.addEventListener('click', () => {
+            if (currentMode !== 1) {
+                currentMode = 1;
+                mode1Btn.classList.add('active');
+                mode2Btn.classList.remove('active');
+                mode3Btn.classList.remove('active');
+                mode4Btn.classList.remove('active');
+                generateQuestion();
+            }
+        });
+        
+        mode2Btn.addEventListener('click', () => {
+            if (currentMode !== 2) {
+                currentMode = 2;
+                mode2Btn.classList.add('active');
+                mode1Btn.classList.remove('active');
+                mode3Btn.classList.remove('active');
+                mode4Btn.classList.remove('active');
+                generateQuestion();
+            }
+        });
+        
+        mode3Btn.addEventListener('click', () => {
+            if (currentMode !== 3) {
+                currentMode = 3;
+                mode3Btn.classList.add('active');
+                mode1Btn.classList.remove('active');
+                mode2Btn.classList.remove('active');
+                mode4Btn.classList.remove('active');
+                generateQuestion();
+            }
+        });
+        
+        mode4Btn.addEventListener('click', () => {
+            if (currentMode !== 4) {
+                currentMode = 4;
+                mode4Btn.classList.add('active');
+                mode1Btn.classList.remove('active');
+                mode2Btn.classList.remove('active');
+                mode3Btn.classList.remove('active');
+                generateQuestion();
+                updateCollectionList('all');
+            }
+        });
+
+        // 标签页切换
+        document.querySelectorAll('.collection-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.collection-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                updateCollectionList(tab.dataset.tab);
+            });
+        });
+
+        // 下一题
+        nextBtn.addEventListener('click', generateQuestion);
+        
+        // 重置游戏
+        resetBtn.addEventListener('click', initGame);
+
+        // 开始游戏
+        initGame();
+    </script>
+</body>
+</html>
